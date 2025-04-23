@@ -25,6 +25,26 @@ const char webpage_html[] PROGMEM = R"rawliteral(
 * print wifi relevant info to Serial
 *
 */
+
+String urlDecode(String input) {
+  String decoded = "";
+  char temp[] = "0x00";
+  
+  for (int i = 0; i < input.length(); i++) {
+    if (input[i] == '%') {
+      temp[2] = input[i+1];
+      temp[3] = input[i+2];
+      decoded += (char)strtol(temp, NULL, 16);
+      i += 2;
+    } else if (input[i] == '+') {
+      decoded += ' ';
+    } else {
+      decoded += input[i];
+    }
+  }
+  return decoded;
+}
+
 void printWiFiStatus() {
   // print the SSID of the network you're attached to:
   Serial.print(F("SSID: "));
@@ -159,9 +179,9 @@ void AP_getInfo(String &ssid, String &passcode, String &gsid) {
                 int passcodeIndx = currentLine.indexOf("passcode=");
                 int gsidIndx = currentLine.indexOf("GSID=");
                 int httpIndx = currentLine.indexOf(" HTTP");
-                ssid = currentLine.substring(ssidIndx + 5, passcodeIndx - 1);
-                passcode = currentLine.substring(passcodeIndx + 9, gsidIndx - 1);
-                gsid = currentLine.substring(gsidIndx + 5, httpIndx);
+                ssid = urlDecode(currentLine.substring(ssidIndx + 5, passcodeIndx - 1));
+                passcode = urlDecode(currentLine.substring(passcodeIndx + 9, gsidIndx - 1));
+                gsid = urlDecode(currentLine.substring(gsidIndx + 5, httpIndx));
 
                 // close the connection:
                 client.stop();
